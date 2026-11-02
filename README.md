@@ -15,8 +15,3 @@ Quando aparecem domínios novos, envia alerta para o Telegram (secrets `TELEGRAM
 - `data/history.csv` — histórico com timestamp, domínio, entry id e link do resultado
 - `.github/workflows/collect.yml` — automação
 
-## Setup
-
-1. Criar o repo e fazer push destes ficheiros.
-2. Nas Settings > Secrets and variables > Actions, adicionar `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` (opcional, só se quiseres alertas).
-3. A Action corre de hora a hora (cron) ou manualmente via "Run workflow".
