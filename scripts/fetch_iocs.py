@@ -19,9 +19,17 @@ HISTORY_FILE = os.path.join(DATA_DIR, "history.csv")
 NS = {"atom": "http://www.w3.org/2005/Atom"}
 SCAN_RE = re.compile(r"matched a scan of ([^\s(]+) \(by hunting rule\)")
 
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/atom+xml, application/xml, text/xml, */*",
+}
+
 
 def fetch_feed() -> str:
-    resp = requests.get(FEED_URL, timeout=30)
+    resp = requests.get(FEED_URL, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     return resp.text
 
@@ -37,7 +45,7 @@ def parse_entries(xml_text: str):
         link = link_el.get("href") if link_el is not None else ""
         match = SCAN_RE.search(title)
         domain = match.group(1).rstrip(".") if match else None
-        entries.append({"id": entry_id, "domain": domain, "updated": updated, "link": link})
+        entries.append({"id": entry_id, "title": title, "domain": domain, "updated": updated, "link": link})
     return entries
 
 
@@ -50,7 +58,16 @@ def load_known_domains() -> set:
 
 def main():
     os.makedirs(DATA_DIR, exist_ok=True)
-    entries = parse_entries(fetch_feed())
+    xml_text = fetch_feed()
+    entries = parse_entries(xml_text)
+
+    print(f"DEBUG raw response length: {len(xml_text)} chars")
+    print(f"DEBUG entries found in feed: {len(entries)}")
+    if entries:
+        print(f"DEBUG sample title: {entries[0]['title']!r}")
+        print(f"DEBUG sample domain match: {entries[0]['domain']!r}")
+    else:
+        print(f"DEBUG raw response (first 500 chars): {xml_text[:500]!r}")
 
     known = load_known_domains()
     new_domains = []
@@ -59,14 +76,14 @@ def main():
     with open(HISTORY_FILE, "a", newline="", encoding="utf-8") as hf:
         writer = csv.writer(hf)
         if not history_exists:
-            writer.writerow(["collected_at", "domain", "entry_id", "updated", "link"])
+            writer.writerow(["collected_at", "domain", "entry_id", "updated", "link", "title"])
         now = datetime.now(timezone.utc).isoformat()
         for e in entries:
             if not e["domain"] or e["domain"] in known:
                 continue
             known.add(e["domain"])
             new_domains.append(e["domain"])
-            writer.writerow([now, e["domain"], e["id"], e["updated"], e["link"]])
+            writer.writerow([now, e["domain"], e["id"], e["updated"], e["link"], e["title"]])
 
     with open(DOMAINS_FILE, "w", encoding="utf-8") as f:
         for d in sorted(known):
