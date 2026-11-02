@@ -18,6 +18,10 @@ HISTORY_FILE = os.path.join(DATA_DIR, "history.csv")
 
 NS = {"atom": "http://www.w3.org/2005/Atom"}
 SCAN_RE = re.compile(r"matched a scan of ([^\s(]+) \(by hunting rule\)")
+DOMAIN_RE = re.compile(
+    r"^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+    r"(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$"
+)
 
 HEADERS = {
     "User-Agent": (
@@ -40,11 +44,18 @@ def parse_entries(xml_text: str):
     for entry in root.findall("atom:entry", NS):
         entry_id = entry.findtext("atom:id", default="", namespaces=NS)
         title = entry.findtext("atom:title", default="", namespaces=NS)
+        content = entry.findtext("atom:content", default="", namespaces=NS)
         updated = entry.findtext("atom:updated", default="", namespaces=NS)
         link_el = entry.find("atom:link", NS)
         link = link_el.get("href") if link_el is not None else ""
-        match = SCAN_RE.search(title)
-        domain = match.group(1).rstrip(".") if match else None
+
+        title_stripped = title.strip()
+        if DOMAIN_RE.match(title_stripped):
+            domain = title_stripped
+        else:
+            match = SCAN_RE.search(content) or SCAN_RE.search(title)
+            domain = match.group(1).rstrip(".") if match else None
+
         entries.append({"id": entry_id, "title": title, "domain": domain, "updated": updated, "link": link})
     return entries
 
