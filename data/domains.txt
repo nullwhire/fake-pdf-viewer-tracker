@@ -5,6 +5,7 @@ adobeinstaller-virid.vercel.app
 amnesiacuracao.com
 apoyar.org
 audtfnaurth.com.es
+botsea.club
 browardcountypdf-viewer.vercel.app
 browardcourtpdf-viewer.vercel.app
 browardpdf-viewer.vercel.app
@@ -45,6 +46,7 @@ nilehost.cloud
 pdf-viewer-five-virid.vercel.app
 peputragroup.com
 pomarosahotel.com
+prsnrw.de
 rlp.dupintt.com
 skyloghomes.com
 strutsupportsystems.com
